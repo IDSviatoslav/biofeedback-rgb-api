@@ -4,60 +4,54 @@
 #include <ArduinoJson.h>
 
 #include "XiaomiDevice.h"
-//#include "Device.h"
 
 const char* ssid     = "LampNet"; 
 const char* password = "lamp1234"; 
-YeelightLamp yeelight_lamp;
 
-String command;
+Device *device;
 
 int rgbBr[3];
 int timePeriod;
 int brightness = 0;
 boolean powerState = false;
+String deviceType = "none";
 
 void setup() {
   Serial.begin(115200);
-
-  WiFi.mode(WIFI_AP);
-  WiFi.softAP(ssid, password);
-
-  yeelight_lamp.setPrintDebug(false);
-  yeelight_lamp.start();
+  String test;
+  while(deviceType == "none"){
+    test = readJSON();
+    Serial.println(test);
+  }
+  device = deviceFactory(deviceType);
+  device->init(ssid, password);
 }
 
-void loop() {
-  readJSON();
-
-  if (!yeelight_lamp.present()) {
-    yeelight_lamp.find();
-  }
-
-  if (yeelight_lamp.present()) {
-    const unsigned int smooth_time = 500;
-    yeelight_lamp.setPower(powerState, smooth_time);
-    yeelight_lamp.setBrightness(brightness, smooth_time);
-    yeelight_lamp.setRGB(rgbBr[0], rgbBr[1], rgbBr[2], smooth_time);
-    delay(timePeriod);
-    yeelight_lamp.setPower(false, 500);
-  }
-
+void loop() {  
+  String command = readJSON();
+  executeCmd(command);
 }
 
-void readJSON() {
-  Serial.print("reading Json \n");
+
+void executeCmd(String cmd){
+  if (cmd == "setRgb") device->setRGB(rgbBr[0], rgbBr[1], rgbBr[2], timePeriod);
+  else if (cmd == "setBr") device->setBrightness(brightness);
+  else if (cmd == "setPwr") device->setPower(powerState);
+  else Serial.println(cmd);
+}
+
+String readJSON() {
   char CharBuff [160]; 
   const size_t capacity = JSON_OBJECT_SIZE(6);
   boolean reading_complete = false;
   int i = 0;
   while (!reading_complete){
+    if (i > 160) reading_complete = true;
     if (Serial.available() > 0 && i < 160) {
       char ch = char (Serial.read());
       CharBuff [i] = ch;
       if (i==0 && ch!='{'){
-        Serial.write("Error READING \n");
-        return;
+        return "json reading error - wrong input";
       }
       i++;
       
@@ -67,37 +61,41 @@ void readJSON() {
         if (!error){
           String command = doc["cmd"];
 
-          if (command == "setRgb"){
+          if(command == "setDevType"){
+              deviceType = doc["devType"].as<String>();
+              Serial.print ("devType = ");
+              Serial.println(deviceType);
+          }
+          else if (command == "setRgb"){
             timePeriod = doc["time"];
             String color = doc["color"];
             parseColor(color);
-            Serial.print("rgb params = \n");
+            Serial.print("rgb params = ");
             Serial.print(rgbBr[0]);
             Serial.print(",");
             Serial.print(rgbBr[1]);
             Serial.print(",");
-            Serial.print(rgbBr[2]);
-            Serial.print ("\n");
+            Serial.println(rgbBr[2]);
           }
           else if (command == "setBr"){
             brightness = doc["brightness"];
-            Serial.print("br params = \n");
-            Serial.print (brightness);
-            Serial.print ("\n");
+            Serial.print("br params = ");
+            Serial.println(brightness);
           }
 
           else if (command == "setPwr"){
             powerState = doc["state"];
-            Serial.print("pwr params = \n");
-            Serial.print (powerState);
-            Serial.print (" \n");
+            Serial.print("pwr params = ");
+            Serial.println(powerState);
           }
           reading_complete = true;
+          return command;
         }
-        i=0;
+        else return error.c_str();
       }
     }
   }
+  return "reading unsucessful";
 }
 
 void parseColor(String str){
@@ -113,4 +111,8 @@ void parseColor(String str){
     num="";
     j++;
   }
+}
+
+Device *deviceFactory(String deviceType){
+    if(deviceType == "Xiaomi") return new XiaomiDevice(); 
 }

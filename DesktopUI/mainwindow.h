@@ -30,6 +30,7 @@ class MainWindow : public QMainWindow
     QSerialPort device;
     QJsonArray colors;
     bool deviceIsConnected;
+    QString deviceType;
 
 public:
     MainWindow(QWidget *parent = nullptr);
@@ -45,15 +46,7 @@ private slots:
 
     void on_sliderB_sliderMoved();
 
-    void on_pushButton_clicked();
-
-    void on_pushButtonAddPoint_clicked();
-
     void on_spinBoxTime_valueChanged(const QString &arg1);
-
-    void on_pushButtonSendCommand_clicked();
-
-    void on_pushButton_2_clicked();
 
     void on_spinBoxBright_valueChanged(const QString &arg1);
 
@@ -64,6 +57,8 @@ private slots:
     void on_pushButtonSetRgb_clicked();
 
     void on_pushButtonSetBr_clicked();
+
+    void on_pushButtonPickDeviceType_clicked();
 
 private:
     Ui::MainWindow *ui;

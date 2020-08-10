@@ -1,36 +1,29 @@
 #include "XiaomiDevice.h"
 
-
-XiaomiDevice::XiaomiDevice(const char* netName, const char* pass){
-    Serial.begin(115200);
-    Serial.print("Strarting...");
-    WiFi.mode(WIFI_AP);
-    WiFi.softAP(netName, pass);
-    Serial.println("...done");
-    yeelightLamp.setPrintDebug(true);
-    yeelightLamp.start();
-    //Serial.println("...now here");
-}
-
 String XiaomiDevice::getInfo(){
     return "Xiaomi";
 }
 
+void XiaomiDevice::init(const char* netName, const char* pass){
+    WiFi.mode(WIFI_AP);
+    WiFi.softAP(netName, pass);
+    yeelightLamp.setPrintDebug(false);
+    yeelightLamp.start();  
+    while (!yeelightLamp.present()) yeelightLamp.find();
+}
+
+void XiaomiDevice::setPower(bool state){
+  if (!yeelightLamp.present()) yeelightLamp.find();
+  yeelightLamp.setPower(state, smoothTime);
+}
+
 void XiaomiDevice::setRGB(int r, int g, int b, int duration){
-    if (!yeelightLamp.present()) {
-        yeelightLamp.find();
-        Serial.println("...in setRgb");
-    }
-    yeelightLamp.setPower(true, smoothTime);
-    yeelightLamp.setBrightness(100, smoothTime);
+    if (!yeelightLamp.present()) yeelightLamp.find();
     yeelightLamp.setRGB(r, g, b, smoothTime);
     delay(duration);
 }
 
 void XiaomiDevice::setBrightness(int brightness){
-    if (!yeelightLamp.present()) {
-        yeelightLamp.find();
-        Serial.println("...in setBr");
-    }
+    if (!yeelightLamp.present()) yeelightLamp.find();
     yeelightLamp.setBrightness(brightness, smoothTime);
 }

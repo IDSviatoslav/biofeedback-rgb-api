@@ -10,6 +10,9 @@ MainWindow::MainWindow(QWidget *parent)
     g = QString::number(ui->sliderG->value());
     b = QString::number(ui->sliderB->value());
 
+    ui->textEditDeviceStatus->setText("NOT CONNECTED");
+    ui->listWidgetDeviceChoice->addItem("Xiaomi");
+    ui->listWidgetDeviceChoice->addItem("Another device");
 
     QList<QSerialPortInfo> allPorts = QSerialPortInfo::availablePorts();
     for (int i = 0; i < allPorts.length();i++){
@@ -22,8 +25,8 @@ MainWindow::MainWindow(QWidget *parent)
             device.setDataBits(QSerialPort::Data8);
             device.setParity(QSerialPort::NoParity);
             device.setStopBits(QSerialPort::OneStop);
+            ui->textEditDeviceStatus->setText("CONNECTED");
         }
-
     }
 }
 
@@ -75,8 +78,8 @@ void MainWindow::on_pushButtonSetRgb_clicked()
     QString command(doc.toJson(QJsonDocument::Compact));
 
     if (device.isWritable()){
-        ui->textEdit->append(command);
-        ui->textEdit->append("\n");
+        ui->textEditCommand->append(command);
+        ui->textEditCommand->append("\n");
         device.write(command.toStdString().c_str());
         qDebug() << "rgb values sent";
         qDebug() << command;
@@ -85,21 +88,9 @@ void MainWindow::on_pushButtonSetRgb_clicked()
     if (device.isReadable()){
         qDebug() << "Trying to read";
         QString readMessage = QString(device.readAll());
-        ui->nodeMCUAnswer->setText(readMessage);
+        ui->textEditDeviceAnswer->setText(readMessage);
         qDebug() << readMessage;
     }
-}
-
-void MainWindow::on_pushButtonAddPoint_clicked()
-{
-    /*QJsonObject commandObj;
-    QString color = r + " , " + g + " , " + b;
-    commandObj.insert("cmd", "setRgb");
-    commandObj.insert("time", QJsonValue::fromVariant(time));
-    commandObj.insert("color", QJsonValue::fromVariant(color));
-    QJsonDocument doc(commandObj);
-    QString command(doc.toJson(QJsonDocument::Compact));
-    timelineCommands.append(command);*/
 }
 
 void MainWindow::on_spinBoxTime_valueChanged(const QString &arg1)
@@ -107,15 +98,6 @@ void MainWindow::on_spinBoxTime_valueChanged(const QString &arg1)
     time = arg1;
 }
 
-void MainWindow::on_pushButtonSendCommand_clicked()
-{
-    QString command = ui->textEditSendCommand->toPlainText();
-
-    if (device.isWritable()){
-        device.write(command.toStdString().c_str());
-        qDebug() << "command sent";
-    }
-}
 
 void MainWindow::on_pushButtonSetBr_clicked()
 {
@@ -129,14 +111,14 @@ void MainWindow::on_pushButtonSetBr_clicked()
         device.write(command.toStdString().c_str());
         qDebug() << "brightness values sent";
         qDebug() << brightness;
-        ui->textEdit->append(command);
-        ui->textEdit->append("\n");
+        ui->textEditCommand->append(command);
+        ui->textEditCommand->append("\n");
     }
 
     if (device.isReadable()){
         qDebug() << "Trying to read";
         QString readMessage = QString(device.readAll());
-        ui->nodeMCUAnswer->setText(readMessage);
+        ui->textEditDeviceAnswer->setText(readMessage);
         qDebug() << readMessage;
     }
 }
@@ -160,19 +142,44 @@ void MainWindow::on_checkBoxPowerSwitch_stateChanged(int arg1)
         device.write(command.toStdString().c_str());
         qDebug() << "power values sent";
         qDebug() << state;
-        ui->textEdit->append(command);
-        ui->textEdit->append("\n");
+        ui->textEditCommand->append(command);
+        ui->textEditCommand->append("\n");
     }
 
     if (device.isReadable()){
         qDebug() << "Trying to read";
         QString readMessage = QString(device.readAll());
-        ui->nodeMCUAnswer->setText(readMessage);
+        ui->textEditDeviceAnswer->setText(readMessage);
         qDebug() << readMessage;
     }
 }
 
 void MainWindow::on_pushButtonClear_clicked()
 {
-    ui->textEdit->clear();
+    ui->textEditCommand->clear();
+    ui->textEditDeviceAnswer->clear();
+}
+
+void MainWindow::on_pushButtonPickDeviceType_clicked()
+{
+    QString devType = ui->listWidgetDeviceChoice->currentItem()->text();
+    QJsonObject commandObj;
+    commandObj.insert("cmd", "setDevType");
+    commandObj.insert("devType", devType);
+    QJsonDocument doc(commandObj);
+    QString command(doc.toJson(QJsonDocument::Compact));
+    if (device.isWritable()){
+        device.write(command.toStdString().c_str());
+        qDebug() << "devType sent";
+        qDebug() << devType;
+        ui->textEditCommand->append(command);
+        ui->textEditCommand->append("\n");
+    }
+
+    if (device.isReadable()){
+        qDebug() << "Trying to read";
+        QString readMessage = QString(device.readAll());
+        ui->textEditDeviceAnswer->setText(readMessage);
+        qDebug() << readMessage;
+    }
 }
