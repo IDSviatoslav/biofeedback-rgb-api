@@ -5,6 +5,10 @@
 
 class Device{
     public:
+        int RGB[3] = {0, 0, 0};
+        int timePeriod = 0;
+        int brightness = 0;
+        boolean powerState = false;
         virtual String getInfo() = 0;
         virtual void init(const char*, const char*) = 0;
         virtual void setPower(bool) = 0;

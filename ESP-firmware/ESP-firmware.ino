@@ -10,10 +10,11 @@ const char* password = "lamp1234";
 
 Device *device;
 
-int rgbBr[3];
-int timePeriod;
-int brightness = 0;
-boolean powerState = false;
+//int rgbBr[3];
+//int timePeriod;
+//int brightness = 0;
+//boolean powerState = false;
+
 String deviceType = "none";
 
 void setup() {
@@ -34,9 +35,9 @@ void loop() {
 
 
 void executeCmd(String cmd){
-  if (cmd == "setRgb") device->setRGB(rgbBr[0], rgbBr[1], rgbBr[2], timePeriod);
-  else if (cmd == "setBr") device->setBrightness(brightness);
-  else if (cmd == "setPwr") device->setPower(powerState);
+  if (cmd == "setRgb") device->setRGB(device->RGB[0], device->RGB[1], device->RGB[2], device->timePeriod);
+  else if (cmd == "setBr") device->setBrightness(device->brightness);
+  else if (cmd == "setPwr") device->setPower(device->powerState);
   else Serial.println(cmd);
 }
 
@@ -67,26 +68,26 @@ String readJSON() {
               Serial.println(deviceType);
           }
           else if (command == "setRgb"){
-            timePeriod = doc["time"];
+            device->timePeriod = doc["time"];
             String color = doc["color"];
             parseColor(color);
             Serial.print("rgb params = ");
-            Serial.print(rgbBr[0]);
+            Serial.print(device->RGB[0]);
             Serial.print(",");
-            Serial.print(rgbBr[1]);
+            Serial.print(device->RGB[1]);
             Serial.print(",");
-            Serial.println(rgbBr[2]);
+            Serial.println(device->RGB[2]);
           }
           else if (command == "setBr"){
-            brightness = doc["brightness"];
+            device->brightness = doc["brightness"];
             Serial.print("br params = ");
-            Serial.println(brightness);
+            Serial.println(device->brightness);
           }
 
           else if (command == "setPwr"){
-            powerState = doc["state"];
+            device->powerState = doc["state"];
             Serial.print("pwr params = ");
-            Serial.println(powerState);
+            Serial.println(device->powerState);
           }
           reading_complete = true;
           return command;
@@ -107,7 +108,7 @@ void parseColor(String str){
       if (str[j]==',') break;  
       j++;
     } 
-    rgbBr[i] = atoi(num.c_str());
+    device->RGB[i] = atoi(num.c_str());
     num="";
     j++;
   }
