@@ -53,7 +53,6 @@ void MainWindow::on_pushButtonSetRgb_clicked()
 }
 
 
-
 void MainWindow::on_pushButtonSetBr_clicked()
 {
     controller.setBrightness(ui->spinBoxBright->value());

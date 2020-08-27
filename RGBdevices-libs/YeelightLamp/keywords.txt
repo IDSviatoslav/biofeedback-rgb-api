@@ -1,0 +1,11 @@
+YeelightLampCommandStatus	KEYWORD1
+YeelightLamp	KEYWORD1
+start	KEYWORD2
+present	KEYWORD2
+find	KEYWORD2
+setPrintDebug	KEYWORD2
+setPower	KEYWORD2
+setRGB	KEYWORD2
+setBrightness	KEYWORD2
+setAnimation	KEYWORD2
+pfnCommandStatus	KEYWORD2
